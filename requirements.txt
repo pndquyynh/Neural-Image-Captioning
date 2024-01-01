@@ -1,0 +1,9 @@
+pyenchant
+joblib
+# difflib -> import difflib
+pysrt
+guessit
+tqdm
+pyunpack
+ffmpy
+nltk
