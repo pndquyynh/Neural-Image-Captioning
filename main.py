@@ -169,11 +169,15 @@ def crop_image(image, boxes):
         cropped_images.append(cropped_img)
     return cropped_images
 
-def save_cropped_images(cropped_images, output_dir='letter_crops'):
+def save_cropped_images(cropped_images, output_dir='letter_crops', target_size=(64, 64)):
     os.makedirs(output_dir, exist_ok=True)
     for i, cropped_img in enumerate(cropped_images):
+        # Resize the image to the target size
+        resized_img = cv2.resize(cropped_img, target_size, interpolation=cv2.INTER_AREA)
+
+        # Save the resized image
         output_path = os.path.join(output_dir, f'letter_{i + 1}.png')
-        cv.imwrite(output_path, cropped_img)
+        cv2.imwrite(output_path, resized_img)
         print(f'Saved {output_path}')
 
 img = cv.imread('test2.png')
@@ -212,6 +216,6 @@ for i, cropped_img in enumerate(cropped_images):
     cv.imshow(f'Cropped Image {i}', cropped_img)
 
 # Save cropped images to files
-save_cropped_images(cropped_images)
+save_cropped_images(cropped_images, target_size=(64, 64))
 
 cv.waitKey(0)
