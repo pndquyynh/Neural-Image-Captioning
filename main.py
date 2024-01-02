@@ -40,7 +40,7 @@ def detect_boxes_from_heat_map(input_image):
     # Define range of blue color in BGR
     lower_blue = np.array([0,0,0])
     upper_blue_weak = np.array([255,200,140])
-    upper_blue_strong = np.array([255,255,200])
+    #upper_blue_strong = np.array([255,255,200])
     kernel = np.ones((3,3), np.uint8)
 
     # Create a mask that only includes blue pixels within a certain range
@@ -100,7 +100,6 @@ def detect_boxes_from_heat_map(input_image):
 
     markers = cv.watershed(input_image,markers)
     input_image[markers == -1] = [255,0,0]
-    input_image[0] = [0,0,0]
     input_image[0] = [0,0,0]
     #cv.imshow('input_image_with marker',input_image)
 
