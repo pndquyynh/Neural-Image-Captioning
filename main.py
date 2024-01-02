@@ -3,7 +3,7 @@ import cv2
 from matplotlib import pyplot as plt
 import cv2 as cv
 from craft_text_detector import Craft
-
+import os
 
 def generate_boxes_from_image(image):
     craft = Craft(output_dir="./output", crop_type="box", cuda=False)
@@ -169,6 +169,13 @@ def crop_image(image, boxes):
         cropped_images.append(cropped_img)
     return cropped_images
 
+def save_cropped_images(cropped_images, output_dir='letter_crops'):
+    os.makedirs(output_dir, exist_ok=True)
+    for i, cropped_img in enumerate(cropped_images):
+        output_path = os.path.join(output_dir, f'letter_{i + 1}.png')
+        cv.imwrite(output_path, cropped_img)
+        print(f'Saved {output_path}')
+
 img = cv.imread('test2.png')
 
 #generate_boxes_from_image(img)
@@ -204,5 +211,7 @@ cropped_images = crop_image(resized_img, boxes)
 for i, cropped_img in enumerate(cropped_images):
     cv.imshow(f'Cropped Image {i}', cropped_img)
 
+# Save cropped images to files
+save_cropped_images(cropped_images)
 
 cv.waitKey(0)
