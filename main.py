@@ -135,13 +135,6 @@ def detect_boxes_from_heat_map(input_image):
         if (x_min < 5): continue
         x_max, y_max = np.max(coords[1]), np.max(coords[0])
 
-        # target_size = 640
-        #
-        # result.append((max(int(x_min * target_size / width), 0),
-        #                max(int(y_min * target_size / height), 0),
-        #                min(int(x_max * target_size / width), target_size),
-        #                min(int(y_max * target_size / height), target_size)))
-
         result.append((int(x_min * 99/100),
                        int(y_min * 99/100),
                        int(x_max * 100/100),
