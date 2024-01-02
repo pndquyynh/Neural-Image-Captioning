@@ -135,8 +135,15 @@ def detect_boxes_from_heat_map(input_image):
         if (x_min < 5): continue
         x_max, y_max = np.max(coords[1]), np.max(coords[0])
 
-        result.append((int(x_min * 98/100),
-                       int(y_min * 98/100),
+        # target_size = 640
+        #
+        # result.append((max(int(x_min * target_size / width), 0),
+        #                max(int(y_min * target_size / height), 0),
+        #                min(int(x_max * target_size / width), target_size),
+        #                min(int(y_max * target_size / height), target_size)))
+
+        result.append((int(x_min * 99/100),
+                       int(y_min * 99/100),
                        int(x_max * 100/100),
                        int(y_max * 100/100)))
 
@@ -160,6 +167,14 @@ def detect_boxes_from_heat_map(input_image):
 
 
     return result
+
+def crop_image(image, boxes):
+    cropped_images = []
+    for box in boxes:
+        x_min, y_min, x_max, y_max = box
+        cropped_img = image[y_min:y_max, x_min:x_max]
+        cropped_images.append(cropped_img)
+    return cropped_images
 
 img = cv.imread('test2.png')
 
@@ -188,5 +203,13 @@ for box in boxes:
 
 
 cv.imshow('resized_img',resized_img)
+
+# Crop the image based on the detected boxes
+cropped_images = crop_image(resized_img, boxes)
+
+# Display or save the cropped images as needed
+for i, cropped_img in enumerate(cropped_images):
+    cv.imshow(f'Cropped Image {i}', cropped_img)
+
 
 cv.waitKey(0)
