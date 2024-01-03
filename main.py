@@ -162,6 +162,7 @@ def detect_boxes_from_heat_map(input_image):
     return result
 
 def crop_image(image, boxes):
+    boxes.sort(key=lambda box: box[0])
     cropped_images = []
     for box in boxes:
         x_min, y_min, x_max, y_max = box
@@ -219,3 +220,4 @@ for i, cropped_img in enumerate(cropped_images):
 save_cropped_images(cropped_images, target_size=(64, 64))
 
 cv.waitKey(0)
+
