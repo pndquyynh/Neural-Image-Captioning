@@ -57,6 +57,7 @@ def detect_boxes_from_heat_map(input_image):
     # sure background area
     sure_bg = cv.dilate(input_image,kernel,iterations=3)
     sure_bg = cv2.cvtColor(sure_bg,cv.COLOR_BGR2GRAY)
+    cv.imshow("sure_bg", sure_bg)
     #print("max_bg",np.max(sure_bg))
 
 
@@ -78,6 +79,7 @@ def detect_boxes_from_heat_map(input_image):
                                            cv2.DIST_L2,cv2.DIST_MASK_PRECISE)
     ret2, sure_fg = cv2.threshold(dist_transform,0.1*dist_transform.max(),255,0)
     sure_fg = sure_fg.astype(np.uint8)
+    cv2.imshow("sure_fg",sure_fg)
     #print("max_fg",np.max(sure_fg))
     #sure_fg = cv2.cvtColor(sure_fg,cv2.COLOR_BGR2GRAY)
     # Finding unknown region
@@ -135,8 +137,8 @@ def detect_boxes_from_heat_map(input_image):
         if (x_min < 5): continue
         x_max, y_max = np.max(coords[1]), np.max(coords[0])
 
-        result.append((int(x_min * 99/100),
-                       int(y_min * 99/100),
+        result.append((int(x_min * 98/100),
+                       int(y_min * 98/100),
                        int(x_max * 100/100),
                        int(y_max * 100/100)))
 
@@ -161,23 +163,57 @@ def detect_boxes_from_heat_map(input_image):
 
     return result
 
-def crop_image(image, boxes):
-    boxes.sort(key=lambda box: box[0])
-    cropped_images = []
-    for box in boxes:
-        x_min, y_min, x_max, y_max = box
-        cropped_img = image[y_min:y_max, x_min:x_max]
-        cropped_images.append(cropped_img)
-    return cropped_images
+# def crop_image(image, boxes):
+#     boxes.sort(key=lambda box: box[0])
+#     cropped_images = []
+#     for box in boxes:
+#         x_min, y_min, x_max, y_max = box
+#         cropped_img = image[y_min:y_max, x_min:x_max]
+#         cropped_images.append(cropped_img)
+#     return cropped_images
+#
+# def save_cropped_images(cropped_images, output_dir='letter_crops', target_size=(64, 64)):
+#     os.makedirs(output_dir, exist_ok=True)
+#     for i, cropped_img in enumerate(cropped_images):
+#         # Resize the image to the target size
+#         resized_img = cv2.resize(cropped_img, target_size, interpolation=cv2.INTER_AREA)
+#
+#         # Save the resized image
+#         output_path = os.path.join(output_dir, f'letter_{i + 1}.png')
+#         cv2.imwrite(output_path, resized_img)
+#         print(f'Saved {output_path}')
 
-def save_cropped_images(cropped_images, output_dir='letter_crops', target_size=(64, 64)):
+def crop_and_save_sentences(image, boxes, output_dir='letter_crops', target_size=(64, 64)):
     os.makedirs(output_dir, exist_ok=True)
-    for i, cropped_img in enumerate(cropped_images):
-        # Resize the image to the target size
+    sentence_count = 1
+    sentence_dir = os.path.join(output_dir, f'sentence_{sentence_count}')
+
+    # # Sort boxes by x-coordinate
+    boxes.sort(key=lambda box: box[0])
+
+    for i, box in enumerate(boxes):
+        x_min, y_min, x_max, y_max = box
+
+        # # Check if the distance between bounding boxes is large enough to start a new sentence
+        # if i > 0:
+        #     prev_box = boxes[i - 1]
+        #     if x_min - prev_box[2] > 20:  # You can adjust the threshold based on your requirement
+        #         sentence_count += 1
+        #         sentence_dir = os.path.join(output_dir, f'sentence_{sentence_count}')
+        #         os.makedirs(sentence_dir, exist_ok=True)
+
+        # Check if the distance between bounding boxes is large enough to start a new sentence
+        if i > 0 and x_min - boxes[i - 1][2] > 20:  # You can adjust the threshold based on your requirement
+            sentence_count += 1
+            sentence_dir = os.path.join(output_dir, f'sentence_{sentence_count}')
+            os.makedirs(sentence_dir, exist_ok=True)
+
+        # Crop and resize the image
+        cropped_img = image[y_min:y_max, x_min:x_max]
         resized_img = cv2.resize(cropped_img, target_size, interpolation=cv2.INTER_AREA)
 
         # Save the resized image
-        output_path = os.path.join(output_dir, f'letter_{i + 1}.png')
+        output_path = os.path.join(sentence_dir, f'letter_{i + 1}.png')
         cv2.imwrite(output_path, resized_img)
         print(f'Saved {output_path}')
 
@@ -208,16 +244,18 @@ for box in boxes:
 
 
 cv.imshow('resized_img',resized_img)
-
-# Crop the image based on the detected boxes
-cropped_images = crop_image(resized_img, boxes)
-
-# Display or save the cropped images as needed
-for i, cropped_img in enumerate(cropped_images):
-    cv.imshow(f'Cropped Image {i}', cropped_img)
-
-# Save cropped images to files
-save_cropped_images(cropped_images, target_size=(64, 64))
+#
+# # Crop the image based on the detected boxes
+# cropped_images = crop_image(resized_img, boxes)
+#
+# # Display or save the cropped images as needed
+# for i, cropped_img in enumerate(cropped_images):
+#     cv.imshow(f'Cropped Image {i}', cropped_img)
+#
+# # Save cropped images to files
+# save_cropped_images(cropped_images, target_size=(64, 64))
+# Crop the image based on the detected boxes and save sentences to files
+crop_and_save_sentences(resized_img, boxes)
 
 cv.waitKey(0)
 
