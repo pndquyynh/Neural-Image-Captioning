@@ -163,43 +163,86 @@ def detect_boxes_from_heat_map(input_image):
 
     return result
 
-def crop_and_save_sentences(image, boxes, output_dir='letter_crops', target_size=(64, 64)):
-    os.makedirs(output_dir, exist_ok=True)
-    sentence_count = 1
-    sentence_dir = os.path.join(output_dir, f'sentence_{sentence_count}')
+# def crop_and_save_sentences(image, boxes, output_dir='letter_crops', target_size=(64, 64)):
+#     os.makedirs(output_dir, exist_ok=True)
+#     sentence_count = 1
+#     sentence_dir = os.path.join(output_dir, f'sentence_{sentence_count}')
+#
+#     # # Sort boxes by x-coordinate
+#     boxes.sort(key=lambda box: box[0])
+#
+#     cropped_data = []
+#
+#     for i, box in enumerate(boxes):
+#         x_min, y_min, x_max, y_max = box
+#
+#         # Check if the distance between bounding boxes is large enough to start a new sentence
+#         if i > 0 and x_min - boxes[i - 1][2] > 20:
+#             sentence_count += 1
+#             sentence_dir = os.path.join(output_dir, f'sentence_{sentence_count}')
+#             os.makedirs(sentence_dir, exist_ok=True)
+#
+#         # Crop and resize the image
+#         cropped_img = image[y_min:y_max, x_min:x_max]
+#         resized_img = cv2.resize(cropped_img, target_size, interpolation=cv2.INTER_AREA)
+#
+#         # Save the resized image
+#         output_path = os.path.join(sentence_dir, f'letter_{i + 1}.png')
+#         cv2.imwrite(output_path, resized_img)
+#         print(f'Saved {output_path}')
+#
+#         # Add information to the cropped_data
+#         cropped_data.append([sentence_count, i + 1, cv2.mean(resized_img)])
+#
+#     return np.array(cropped_data, dtype=object)
 
-    # # Sort boxes by x-coordinate
+def convert_to_3d_array(image, boxes, target_size=(64, 64)):
+    # Sort boxes by x-coordinate
     boxes.sort(key=lambda box: box[0])
 
-    cropped_data = []
+    sentences = []
+    letter_coordinates = []
+
+    sentence_count = 1
+    sentence = []
 
     for i, box in enumerate(boxes):
         x_min, y_min, x_max, y_max = box
 
         # Check if the distance between bounding boxes is large enough to start a new sentence
-        if i > 0 and x_min - boxes[i - 1][2] > 20:  # You can adjust the threshold based on your requirement
+        if i > 0 and x_min - boxes[i - 1][2] > 20:
+            sentences.append(sentence)
             sentence_count += 1
-            sentence_dir = os.path.join(output_dir, f'sentence_{sentence_count}')
-            os.makedirs(sentence_dir, exist_ok=True)
+            sentence = []
 
         # Crop and resize the image
         cropped_img = image[y_min:y_max, x_min:x_max]
         resized_img = cv2.resize(cropped_img, target_size, interpolation=cv2.INTER_AREA)
 
-        # Save the resized image
-        output_path = os.path.join(sentence_dir, f'letter_{i + 1}.png')
-        cv2.imwrite(output_path, resized_img)
-        print(f'Saved {output_path}')
+        # Read pixel values and channels from the resized image
+        pixels = resized_img.shape
+        # cv2.imshow ("abc", resized_img)
+        # cv2.waitKey(delay=0)
 
-        # Add information to the cropped_data
-        cropped_data.append([sentence_count, i + 1, cv2.mean(resized_img)])
+        # Add the pixel information to the letter list
+        sentence.append(pixels)
 
-    return np.array(cropped_data, dtype=object)
+        # # Add the resized image to the letter list
+        # letter_info = cv2.imread(resized_img)
+        # sentence.append(letter_info)
+        # Add the bounding box coordinates to the separate list
+        letter_coordinates.append((x_min, y_min, x_max, y_max))
+    # Add the last sentence to the sentences list
+    sentences.append(sentence)
+
+    # Convert the list structure to a 3D array
+    array_3d = np.array(sentences, dtype=object)
+
+    return array_3d, letter_coordinates
 
 img = cv.imread('test2.png')
 
 #generate_boxes_from_image(img)
-
 
 cv.imshow('img',img)
 
@@ -224,10 +267,12 @@ for box in boxes:
 
 cv.imshow('resized_img',resized_img)
 
-# Crop the image based on the detected boxes and get the 3D array
-cropped_data = crop_and_save_sentences(resized_img, boxes)
+# Convert to 3D array
+array_3d = convert_to_3d_array(resized_img, boxes)
 
-# Display the cropped data
-print(cropped_data)
+# Display the 3D array
+print(array_3d)
+
+
 cv.waitKey(0)
 
