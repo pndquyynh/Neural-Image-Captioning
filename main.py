@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import cv2 as cv
 from craft_text_detector import Craft
 
-
+'''
 def generate_boxes_from_image(image):
     craft = Craft(output_dir="./output", crop_type="box", cuda=False)
     prediction_result = craft.detect_text(image)
@@ -12,6 +12,7 @@ def generate_boxes_from_image(image):
 
     print(text_boxes)
     return
+'''
 
 def generate_heat_map(image):
     # set image path and export folder directory
@@ -40,7 +41,7 @@ def detect_boxes_from_heat_map(input_image):
     # Define range of blue color in BGR
     lower_blue = np.array([0,0,0])
     upper_blue_weak = np.array([255,200,140])
-    upper_blue_strong = np.array([255,255,200])
+    #upper_blue_strong = np.array([255,255,200])
     kernel = np.ones((3,3), np.uint8)
 
     # Create a mask that only includes blue pixels within a certain range
@@ -55,15 +56,12 @@ def detect_boxes_from_heat_map(input_image):
     input_image[mask_weak==0] = (255,255,255)
 
     # sure background area
-    sure_bg = cv.dilate(input_image,kernel,iterations=3)
+    sure_bg = cv.dilate(input_image,kernel,iterations=1)
     sure_bg = cv2.cvtColor(sure_bg,cv.COLOR_BGR2GRAY)
+    cv.imshow("sure_bg",sure_bg)
     #print("max_bg",np.max(sure_bg))
 
-
-
     #bitwiseAnd = cv2.bitwise_and(input_image1, input_image)
-
-
 
 
     #eroded = cv2.erode(input_image,kernel)
@@ -78,6 +76,7 @@ def detect_boxes_from_heat_map(input_image):
                                            cv2.DIST_L2,cv2.DIST_MASK_PRECISE)
     ret2, sure_fg = cv2.threshold(dist_transform,0.1*dist_transform.max(),255,0)
     sure_fg = sure_fg.astype(np.uint8)
+    cv2.imshow("sure_fg",sure_fg)
     #print("max_fg",np.max(sure_fg))
     #sure_fg = cv2.cvtColor(sure_fg,cv2.COLOR_BGR2GRAY)
     # Finding unknown region
@@ -100,8 +99,6 @@ def detect_boxes_from_heat_map(input_image):
 
     markers = cv.watershed(input_image,markers)
     input_image[markers == -1] = [255,0,0]
-    input_image[0] = [0,0,0]
-    input_image[0] = [0,0,0]
     #cv.imshow('input_image_with marker',input_image)
 
     #ret3, markers = cv2.connectedComponents(cv2.cvtColor(input_image,cv2.COLOR_BGR2GRAY))
@@ -112,11 +109,10 @@ def detect_boxes_from_heat_map(input_image):
 
     #cv2.imshow('Colored Grains', annotated)
 
-    plt.imshow(markers)
-    plt.show()
+    #plt.imshow(markers)
+    #plt.show()
 
     # Assuming 'markers' is your labeled input_image from cv2.connectedComponents()
-
 
     unique_markers = np.unique(markers)  # Exclude 0 (background)
 
@@ -136,10 +132,10 @@ def detect_boxes_from_heat_map(input_image):
         if (x_min < 5): continue
         x_max, y_max = np.max(coords[1]), np.max(coords[0])
 
-        result.append((int(x_min * 98/100),
-                       int(y_min * 98/100),
-                       int(x_max * 100/100),
-                       int(y_max * 100/100)))
+        result.append((int(x_min * 98.5/100),
+                       int(y_min * 98.5/100),
+                       int(x_max * 101.5/100),
+                       int(y_max * 101.5/100)))
 
         # Now (x_min, y_min) is the top-left coordinate of the bounding box, and (x_max, y_max) is the bottom-right.
         # You can use these to draw the bounding box on your input_image.
@@ -155,7 +151,7 @@ def detect_boxes_from_heat_map(input_image):
     #cv.imshow('input_image',input_image)
     #cv.imshow("sure_bg",sure_bg)
     cv.imshow("sure_fg",sure_fg)
-    #cv.imshow("unknown",unknown)
+    cv.imshow("unknown",unknown)
     #cv.imshow('And',bitwiseAnd)
     #cv2.waitKey(0)
 
@@ -164,8 +160,8 @@ def detect_boxes_from_heat_map(input_image):
 
 img = cv.imread('test2.png')
 
-#generate_boxes_from_image(img)
 
+#generate_boxes_from_image(img)
 
 cv.imshow('img',img)
 
@@ -183,10 +179,10 @@ cv.imshow('heat_map',heat_map)
 boxes = detect_boxes_from_heat_map(heat_map)
 #print(boxes)
 
-
+'''
 for box in boxes:
     cv.rectangle(resized_img,(box[0],box[1]),(box[2],box[3]),(0,0,0))
-
+'''
 
 cv.imshow('resized_img',resized_img)
 
