@@ -41,7 +41,7 @@ def bgremove(myimage):
     #diliation_image = cv2.morphologyEx(erosion_image, cv2.MORPH_OPEN, kernel_dialiation, iterations=1)
 
     kernel_opening = np.ones((3, 3), np.uint8)
-    opening_image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel_opening, iterations=2)
+    opening_image = cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel_opening, iterations=1)
 
     # Return the final processed image
     return opening_image
@@ -52,7 +52,7 @@ def get_label_from_connected_components(box, label_ids_map):
 
     return label_ids_map[int((box[1] + box[3])/2)][int((box[0] + box[2]) / 2)]
 
-def generate_boxes(image = cv2.imread('./test3.png')):
+def generate_boxes(image):
 
     image_denoised = bgremove(image)
     craft = Craft(output_dir="./output", crop_type="box", cuda=False)
@@ -108,10 +108,10 @@ def generate_boxes(image = cv2.imread('./test3.png')):
         if (x_min < 5): continue
         x_max, y_max = np.max(coords[1]), np.max(coords[0])
 
-        result.append((int(x_min * 99 / 100),
-                       int(y_min * 99 / 100),
-                       int(x_max * 101 / 100),
-                       int(y_max * 101 / 100)))
+        result.append((int(x_min * 98.5 / 100),
+                       int(y_min * 98.5 / 100),
+                       int(x_max * 101.5 / 100),
+                       int(y_max * 101.5 / 100)))
 
         # Now (x_min, y_min) is the top-left coordinate of the bounding box, and (x_max, y_max) is the bottom-right.
         # You can use these to draw the bounding box on your input_image.
@@ -122,8 +122,8 @@ def generate_boxes(image = cv2.imread('./test3.png')):
     #    if box[2] == 117:
     #        cv.rectangle(image, (box[0], box[1]), (box[2], box[3]), (255, 0, 0))
 
-    cv2.imshow('image',image)
-    cv2.waitKey(0)
+    #cv2.imshow('image',image)
+    #cv2.waitKey(0)
 
     link_score = prediction_result['link_score_vector']
     link_score = (np.clip(link_score, 0, 1) * 255).astype(np.uint8)
@@ -138,7 +138,7 @@ def generate_boxes(image = cv2.imread('./test3.png')):
     print("label_ids: ", label_ids)
 
 
-    result.sort(key=lambda box: get_label_from_connected_components(box,label_ids))
+    result.sort(key=lambda box: [get_label_from_connected_components(box,label_ids),box[0]])
 
     image_denoised = cv2.resize(image_denoised,(sure_bg.shape[1],sure_bg.shape[0]),interpolation=cv2.INTER_CUBIC)
     image_denoised[sure_bg == 0] = (0, 0, 0)
@@ -188,7 +188,7 @@ def generate_boxes(image = cv2.imread('./test3.png')):
     #cv.imshow("Score_mask",sure_fg)
     #cv.waitKey(0)
 
-    return result, sure_bg
+    return result, sure_bg, ( sentences, sentence_level_coordinates )
 
 image = cv2.imread('./test3.png')
 ret,sure_bg = generate_boxes(image)
